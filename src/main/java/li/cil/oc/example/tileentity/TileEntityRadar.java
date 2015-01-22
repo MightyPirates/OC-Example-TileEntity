@@ -1,7 +1,11 @@
 package li.cil.oc.example.tileentity;
 
 import li.cil.oc.api.Network;
-import li.cil.oc.api.network.*;
+import li.cil.oc.api.network.Connector;
+import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.AxisAlignedBB;
