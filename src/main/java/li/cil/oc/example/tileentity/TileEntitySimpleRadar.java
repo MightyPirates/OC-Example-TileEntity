@@ -8,7 +8,7 @@ import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,8 +35,8 @@ public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent
     }
 
     @Override
-    public boolean canConnectNode(ForgeDirection side) {
-        return side != ForgeDirection.UP;
+    public boolean canConnectNode(EnumFacing side) {
+        return side != EnumFacing.UP;
     }
 
     // The following methods will be callable from Lua due to the Callback
@@ -63,20 +63,20 @@ public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent
         if (isEnabled) {
             // Get a initial list of entities near the tile entity.
             AxisAlignedBB bounds = AxisAlignedBB.
-                    getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 1, zCoord + 1).
+                    fromBounds(getPos().getX(), getPos().getY(), getPos().getZ(), getPos().getX() + 1, getPos().getY() + 1, getPos().getZ() + 1).
                     expand(RadarRange, RadarRange, RadarRange);
-            for (Object obj : getWorldObj().getEntitiesWithinAABB(EntityLiving.class, bounds)) {
+            for (Object obj : getWorld().getEntitiesWithinAABB(EntityLiving.class, bounds)) {
                 EntityLiving entity = (EntityLiving) obj;
-                double dx = entity.posX - (xCoord + 0.5);
-                double dz = entity.posZ - (zCoord + 0.5);
+                double dx = entity.posX - (getPos().getX() + 0.5);
+                double dz = entity.posZ - (getPos().getZ() + 0.5);
                 // Check if the entity is actually in range.
                 if (Math.sqrt(dx * dx + dz * dz) < RadarRange) {
                     // Maps are converted to tables on the Lua side.
                     Map<String, Object> entry = new HashMap<String, Object>();
-                    if (entity.hasCustomNameTag()) {
+                    if (entity.hasCustomName()) {
                         entry.put("name", entity.getCustomNameTag());
                     } else {
-                        entry.put("name", entity.getCommandSenderName());
+                        entry.put("name", entity.getName());
                     }
                     entry.put("x", (int) dx);
                     entry.put("z", (int) dz);

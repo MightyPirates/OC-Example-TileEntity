@@ -1,21 +1,22 @@
 package li.cil.oc.example.tileentity;
 
 import li.cil.oc.api.Network;
-import li.cil.oc.api.network.Connector;
-import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.Connector;
+import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ITickable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TileEntityRadar extends TileEntityEnvironment {
+public class TileEntityRadar extends TileEntityEnvironment implements ITickable {
     public static final double EnergyCostPerTick = 0.5;
 
     public static final double RadarRange = 32;
@@ -36,8 +37,7 @@ public class TileEntityRadar extends TileEntityEnvironment {
     }
 
     @Override
-    public void updateEntity() {
-        super.updateEntity();
+    public void update() {
         // Nodes are only created on the server side, so we have to check.
         if (node != null && isEnabled) {
             // Consume some energy per tick to keep the radar running!
@@ -69,21 +69,20 @@ public class TileEntityRadar extends TileEntityEnvironment {
         if (isEnabled) {
             // Get a initial list of entities near the tile entity.
             AxisAlignedBB bounds = AxisAlignedBB.
-                    getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 1, zCoord + 1).
+                    fromBounds(getPos().getX(), getPos().getY(), getPos().getZ(), getPos().getX() + 1, getPos().getY() + 1, getPos().getZ() + 1).
                     expand(RadarRange, RadarRange, RadarRange);
-            for (Object obj : getWorldObj().getEntitiesWithinAABB(EntityLiving.class, bounds)) {
+            for (Object obj : getWorld().getEntitiesWithinAABB(EntityLiving.class, bounds)) {
                 EntityLiving entity = (EntityLiving) obj;
-                double dx = entity.posX - (xCoord + 0.5);
-                double dz = entity.posZ - (zCoord + 0.5);
+                double dx = entity.posX - (getPos().getX() + 0.5);
+                double dz = entity.posZ - (getPos().getZ() + 0.5);
                 // Check if the entity is actually in range.
                 if (Math.sqrt(dx * dx + dz * dz) < RadarRange) {
                     // Maps are converted to tables on the Lua side.
                     Map<String, Object> entry = new HashMap<String, Object>();
-                    if (entity.hasCustomNameTag()) {
+                    if (entity.hasCustomName()) {
                         entry.put("name", entity.getCustomNameTag());
-                    }
-                    else {
-                        entry.put("name", entity.getCommandSenderName());
+                    } else {
+                        entry.put("name", entity.getName());
                     }
                     entry.put("x", (int) dx);
                     entry.put("z", (int) dz);
