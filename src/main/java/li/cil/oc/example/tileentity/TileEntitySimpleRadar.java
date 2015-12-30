@@ -3,10 +3,12 @@ package li.cil.oc.example.tileentity;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.SidedComponent;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +20,11 @@ import java.util.Map;
 // manually. Instead, it uses the utility interface SimpleComponent, which,
 // when found by OpenComputers will trigger injection of all functionality
 // required for a component to work.
-public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent {
+// We also use the SidedComponent for demonstration purposes, although that
+// is purely optional. It allows controlling on which sides we allow OC to
+// connecting to this component. In this case, we don't allow connections from
+// the top. If the interface is not implemented, all sides are open/allowed.
+public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent, SidedComponent {
     public static final double RadarRange = 32;
 
     protected boolean isEnabled = true;
@@ -26,6 +32,11 @@ public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent
     @Override
     public String getComponentName() {
         return "simple_radar";
+    }
+
+    @Override
+    public boolean canConnectNode(ForgeDirection side) {
+        return side != ForgeDirection.UP;
     }
 
     // The following methods will be callable from Lua due to the Callback
@@ -64,8 +75,7 @@ public class TileEntitySimpleRadar extends TileEntity implements SimpleComponent
                     Map<String, Object> entry = new HashMap<String, Object>();
                     if (entity.hasCustomNameTag()) {
                         entry.put("name", entity.getCustomNameTag());
-                    }
-                    else {
+                    } else {
                         entry.put("name", entity.getCommandSenderName());
                     }
                     entry.put("x", (int) dx);
